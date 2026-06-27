@@ -29,7 +29,7 @@ RUN pip install --no-cache-dir torchcodec
 
 RUN pip install --no-cache-dir uv
 
-COPY pyproject.toml uv.lock README.md ./
+COPY pyproject.toml uv.lock README.md patch_pyproject.py ./
 
 RUN python3 patch_pyproject.py
 
