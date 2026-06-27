@@ -25,6 +25,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir torch torchaudio \
     --index-url https://download.pytorch.org/whl/cpu
 
+RUN pip install --no-cache-dir torchcodec
+
 RUN pip install --no-cache-dir uv
 
 COPY pyproject.toml uv.lock README.md ./
@@ -35,8 +37,10 @@ with open('pyproject.toml') as f:
     c = f.read()
 c = re.sub(r'torch = \[.*?\]', '', c, flags=re.DOTALL)
 c = re.sub(r'torchaudio = \[.*?\]', '', c, flags=re.DOTALL)
-c = re.sub(r'"torch==\S+",?\n?', '', c)
-c = re.sub(r'"torchaudio==\S+",?\n?', '', c)
+c = re.sub(r'"torch==\S+",?
+?', '', c)
+c = re.sub(r'"torchaudio==\S+",?
+?', '', c)
 with open('pyproject.toml', 'w') as f:
     f.write(c)
 EOF
