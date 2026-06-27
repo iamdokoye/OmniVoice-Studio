@@ -31,19 +31,7 @@ RUN pip install --no-cache-dir uv
 
 COPY pyproject.toml uv.lock README.md ./
 
-RUN python3 <<'EOF'
-import re
-with open('pyproject.toml') as f:
-    c = f.read()
-c = re.sub(r'torch = \[.*?\]', '', c, flags=re.DOTALL)
-c = re.sub(r'torchaudio = \[.*?\]', '', c, flags=re.DOTALL)
-c = re.sub(r'"torch==\S+",?
-?', '', c)
-c = re.sub(r'"torchaudio==\S+",?
-?', '', c)
-with open('pyproject.toml', 'w') as f:
-    f.write(c)
-EOF
+RUN python3 patch_pyproject.py
 
 RUN rm -f uv.lock && uv pip install --system --no-cache .
 
