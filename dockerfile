@@ -33,10 +33,8 @@ RUN python3 <<'EOF'
 import re
 with open('pyproject.toml') as f:
     c = f.read()
-# Remove CUDA torch/torchaudio source blocks
 c = re.sub(r'torch = \[.*?\]', '', c, flags=re.DOTALL)
 c = re.sub(r'torchaudio = \[.*?\]', '', c, flags=re.DOTALL)
-# Remove version pins from constraint-dependencies
 c = re.sub(r'"torch==\S+",?\n?', '', c)
 c = re.sub(r'"torchaudio==\S+",?\n?', '', c)
 with open('pyproject.toml', 'w') as f:
@@ -46,6 +44,8 @@ EOF
 RUN rm -f uv.lock && uv pip install --system --no-cache .
 
 COPY backend/ ./backend/
+RUN sed -i '/torchaudio\.set_audio_backend/d' /app/backend/main.py
+
 COPY omnivoice/ ./omnivoice/
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
