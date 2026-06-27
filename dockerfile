@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM oven/bun:1-alpine AS frontend-builder
 WORKDIR /app
 COPY package.json bun.lock ./
@@ -28,16 +29,21 @@ RUN pip install --no-cache-dir uv
 
 COPY pyproject.toml uv.lock README.md ./
 
-# Strip the CUDA torch pin so uv uses our CPU install above
-RUN python3 -c "
+RUN python3 <<'EOF'
 import re
-content = open('pyproject.toml').read()
-content = re.sub(r'\"torch[^\"]*cu[^\"]*\"', '\"torch>=2.0.0\"', content)
-content = re.sub(r'\"torchaudio[^\"]*cu[^\"]*\"', '\"torchaudio>=2.0.0\"', content)
-open('pyproject.toml', 'w').write(content)
-" && rm -f uv.lock
+with open('pyproject.toml') as f:
+    c = f.read()
+# Remove CUDA torch/torchaudio source blocks
+c = re.sub(r'torch = \[.*?\]', '', c, flags=re.DOTALL)
+c = re.sub(r'torchaudio = \[.*?\]', '', c, flags=re.DOTALL)
+# Remove version pins from constraint-dependencies
+c = re.sub(r'"torch==\S+",?\n?', '', c)
+c = re.sub(r'"torchaudio==\S+",?\n?', '', c)
+with open('pyproject.toml', 'w') as f:
+    f.write(c)
+EOF
 
-RUN uv pip install --system --no-cache .
+RUN rm -f uv.lock && uv pip install --system --no-cache .
 
 COPY backend/ ./backend/
 COPY omnivoice/ ./omnivoice/
